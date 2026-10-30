@@ -1,0 +1,1 @@
+# gitignored; one folder per run: config snapshot, metrics, checkpoint
