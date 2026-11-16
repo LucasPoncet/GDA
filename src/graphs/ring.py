@@ -1,13 +1,13 @@
 import numpy as np
 
 
-def generate_ring_transfer_graph(nodes:int, classe_index:int, add_crosses:bool=False, classes:int=5):
+def generate_ring_transfer_graph(nodes:int, class_index:int, add_crosses:bool=False, classes:int=5):
     """
     Generate one ring transfer graph.
 
     Args:
     - nodes (int): Number of nodes in each graph.
-    - classe_index (int): index of the class of the source node in the graph
+    - class_index (int): index of the class of the source node in the graph
     - add_crosses (bool): Whether to add cross edges in the ring.
     - classes (int): Number of different classes or labels.
 
@@ -28,7 +28,7 @@ def generate_ring_transfer_graph(nodes:int, classe_index:int, add_crosses:bool=F
 
     x[0, :] = 0.0
     x[source_node, :] = 0.0
-    x[source_node, classe_index] = 1.0
+    x[source_node, class_index] = 1.0
 
 
     edge_index = []
@@ -47,6 +47,6 @@ def generate_ring_transfer_graph(nodes:int, classe_index:int, add_crosses:bool=F
     edge_index.append([0, nodes - 1])
     edge_index.append([nodes - 1, 0])
     
-    y = np.array([classe_index], dtype=np.int64)
+    y = np.array([class_index], dtype=np.int64)
 
-    return np.array(edge_index, dtype=np.int64),x,y,0,source_node,source_node
+    return np.array(edge_index, dtype=np.int64).T,x,y,0,source_node,source_node
