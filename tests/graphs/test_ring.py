@@ -32,3 +32,16 @@ def test_features():
     assert np.all(x[readout] == 0)
     assert np.all(x[1] == 1)
     assert y[0] == 3
+
+
+def test_no_duplicate_edges_crossed():
+    edges, *_ = generate_ring_transfer_graph(10, class_index=0, add_crosses=True)
+    pairs = [tuple(e) for e in edges.T.tolist()]
+    assert len(pairs) == len(set(pairs))
+
+
+def test_distance_crossed():
+    edges, x, y, readout, info, dist = generate_ring_transfer_graph(10, class_index=0, add_crosses=True)
+    g = nx.Graph()
+    g.add_edges_from(edges.T.tolist())
+    assert nx.shortest_path_length(g, readout, info) == dist == 5

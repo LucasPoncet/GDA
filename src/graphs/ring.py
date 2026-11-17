@@ -17,7 +17,7 @@ def generate_ring_transfer_graph(nodes:int, class_index:int, add_crosses:bool=Fa
     - np.ndarray: Y the class index array.
     - int: readout node index (0).
     - int: information node index (n//2 here).
-    - int: distance between readout and information nodes (only valid if add_crosses=False).
+    - int: distance between readout and information nodes (n//2, also with cross edges).
     """
     if nodes < 3:
         raise ValueError("At least three nodes are required for a ring.")
@@ -48,5 +48,5 @@ def generate_ring_transfer_graph(nodes:int, class_index:int, add_crosses:bool=Fa
     edge_index.append([nodes - 1, 0])
     
     y = np.array([class_index], dtype=np.int64)
-
+    edge_index = sorted(set(map(tuple, edge_index)))
     return np.array(edge_index, dtype=np.int64).T,x,y,0,source_node,source_node
