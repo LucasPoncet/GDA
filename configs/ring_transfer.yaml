@@ -1,0 +1,12 @@
+task: ring
+model: mpnn
+distances: [7]
+n_samples: 5000
+classes: 5
+hidden_dim: 64
+normalize: true
+num_epochs: 100
+lr: 0.0001
+batch_size: 64
+split: [0.8, 0.1, 0.1]
+seed: 0
