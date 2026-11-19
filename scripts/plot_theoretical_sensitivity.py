@@ -4,7 +4,7 @@ import torch
 from src.graphs.clique_path import generate_clique_path_transfer_graph
 from src.graphs.ring import generate_ring_transfer_graph
 from src.graphs.tree import generate_tree_transfer_graph
-from src.metrics.sensitivity import theoretical_sensitivity
+from src.metrics.sensitivity import mpnn_matrix, theoretical_sensitivity
 from src.plotting.style import COLORS
 
 distances = range(3, 11)
@@ -22,14 +22,15 @@ for (name, generate), color, marker in zip(graphs.items(), COLORS, ["o", "s", "^
     for r in distances:
         edges, x, y, readout, info, d = generate(r)
         assert d == r
-        values.append(theoretical_sensitivity(torch.tensor(edges), x.shape[0], readout, info, num_layers=r))
+        S = mpnn_matrix(torch.tensor(edges), x.shape[0])
+        values.append(theoretical_sensitivity(S, readout, info, num_layers=r))
     ax.semilogy(list(distances), values, marker=marker, linestyle="", color=color, label=name)
 
 rs = list(distances)
 ax.set_xticks(rs)
 ax.grid(True)
 ax.set_xlabel("distance r (= number of layers)")
-ax.set_ylabel(r"$(\hat{S}^r)_{vu}$")
+ax.set_ylabel(r"$(\mathsf{A}^r)_{vu}$")
 ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))
 
 fig.savefig("figures/theoretical_sensitivity.png", dpi=200, bbox_inches="tight")

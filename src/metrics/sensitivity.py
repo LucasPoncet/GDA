@@ -4,8 +4,16 @@ from torch.linalg import matrix_power, matrix_norm
 from torch_geometric.data import Data
 
 
-def normalized_adjacency(edge_index: Tensor, num_nodes: int) -> Tensor:
-    """Dense S = D^-1/2 (A + I) D^-1/2"""
+def mpnn_matrix(edge_index: Tensor, num_nodes: int) -> Tensor:
+    """D^-1/2 A D^-1/2 (no self-loops): the operator of our MPNN with normalize=True, as in Di Giovanni et al., Sec. 4.1."""
+    A = zeros((num_nodes, num_nodes), device=edge_index.device)
+    A[edge_index[0], edge_index[1]] = 1.0
+    d_rsqrt = diag(rsqrt(A.sum(dim=1)))
+    return d_rsqrt @ A @ d_rsqrt
+
+
+def gcn_matrix(edge_index: Tensor, num_nodes: int) -> Tensor:
+    """D^-1/2 (A + I) D^-1/2 with D the degree of A + I: the operator of Kipf & Welling's GCN (PyG GCNConv)."""
     A = zeros((num_nodes, num_nodes), device=edge_index.device)
     A[edge_index[0], edge_index[1]] = 1.0
     A_hat = A + eye(num_nodes, device=edge_index.device)
@@ -14,10 +22,8 @@ def normalized_adjacency(edge_index: Tensor, num_nodes: int) -> Tensor:
     return D_rsqrt @ A_hat @ D_rsqrt
 
 
-def theoretical_sensitivity(edge_index: Tensor, num_nodes: int,
-                            readout_node: int, info_node: int, num_layers: int) -> float:
-    """(S^L)[readout_node, info_node]: the topology term of the bound."""
-    S = normalized_adjacency(edge_index=edge_index, num_nodes=num_nodes)
+def theoretical_sensitivity(S: Tensor, readout_node: int, info_node: int, num_layers: int) -> float:
+    """(S^L)[readout_node, info_node]: the topology term of Theorem 3.2, for a given message-passing matrix S."""
     return matrix_power(S, num_layers)[readout_node, info_node].item()
 
 def jacobian_sensitivity(model: nn.Module, data: Data) -> list[float]:

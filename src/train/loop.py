@@ -1,8 +1,6 @@
 import torch
 import torch.nn.functional as F
 
-from src.metrics.accuracy import accuracy
-
 
 def train(model, readout, train_loader, val_loader, num_epochs=100, lr=1e-3, device="cpu"):
     """Train the model and restore the weights with the best validation accuracy."""
@@ -15,7 +13,6 @@ def train(model, readout, train_loader, val_loader, num_epochs=100, lr=1e-3, dev
     history = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": []}
     best_val_acc = -1.0
     best_state = None
-    epochs_without_improvement = 0
 
     for epoch in range(1, num_epochs + 1):
         model.train()
@@ -86,9 +83,26 @@ def train(model, readout, train_loader, val_loader, num_epochs=100, lr=1e-3, dev
                 "model": {name: value.clone() for name, value in model.state_dict().items()},
                 "readout": {name: value.clone() for name, value in readout.state_dict().items()},
             }
+        if val_acc == 1.0:
+            break
 
     if best_state is not None:
         model.load_state_dict(best_state["model"])
         readout.load_state_dict(best_state["readout"])
 
     return history
+
+def evaluate(model, readout, loader, device="cpu"):
+    """accuracy of model + readout on a loader"""
+    model.eval()
+    readout.eval()
+    correct, total = 0, 0 
+    with torch.no_grad():
+        for batch in loader:
+            batch = batch.to(device)
+            logits = readout(model(batch)[-1], batch.readout_mask)
+            correct += (logits.argmax(dim=1) == batch.y).sum().item()
+            total += batch.num_graphs
+
+    return correct/total
+            
